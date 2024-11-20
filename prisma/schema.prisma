@@ -1,0 +1,90 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model SatelliteSignal {
+  id             String   @id @default(cuid())
+  satelliteName  String
+  operator       String
+  frequency      Float
+  polarization   Polarization
+  modulation     Modulation
+  symbolRate     Int
+  fec            String
+  bandwidth      Float
+  serviceType    ServiceType
+  encryption     Boolean  @default(false)
+  transponders   Int      @default(1)
+  coverage       Json?
+  status         SignalStatus @default(ACTIVE)
+  
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  
+  signalLogs     SignalLog[]
+  performanceMetrics PerformanceMetric[]
+}
+
+model SignalLog {
+  id             String   @id @default(cuid())
+  satelliteSignalId String
+  satelliteSignal SatelliteSignal @relation(fields: [satelliteSignalId], references: [id])
+  
+  timestamp      DateTime @default(now())
+  signalStrength Float
+  noiseLevel     Float
+  carrierToNoise Float
+  
+  notes          String?
+}
+
+model PerformanceMetric {
+  id             String   @id @default(cuid())
+  satelliteSignalId String
+  satelliteSignal SatelliteSignal @relation(fields: [satelliteSignalId], references: [id])
+  
+  date           DateTime
+  availability   Float
+  latency        Float
+  packetLoss     Float
+  throughput     Float
+}
+
+enum Polarization {
+  VERTICAL
+  HORIZONTAL
+  LEFT_CIRCULAR
+  RIGHT_CIRCULAR
+}
+
+enum Modulation {
+  QPSK
+  EIGHT_PSK
+  SIXTEEN_APSK
+  THIRTY_TWO_APSK
+  SIXTY_FOUR_APSK
+  DVB_S
+  DVB_S2
+}
+
+enum ServiceType {
+  TV
+  RADIO
+  DATA
+  INTERNET
+  TELEPHONY
+  MILITARY
+  SCIENTIFIC
+}
+
+enum SignalStatus {
+  ACTIVE
+  INACTIVE
+  MAINTENANCE
+  TESTING
+}
